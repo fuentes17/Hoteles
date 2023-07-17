@@ -1,11 +1,12 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import swal from 'sweetalert';
+
 
 const endpoint = 'http://localhost:8000/api/Hotel';
 
 
-export default function CreateHotel() {
+export default function CreateHotel({ getAllHotel,ActualizarPagina }) {
   const [NombreHotel, setNombreHotel] = useState('');
   const [Direccion, setDireccion] = useState('');
   const [Ciudad, setCiudad] = useState('');
@@ -14,9 +15,10 @@ export default function CreateHotel() {
   const [idhabitaciones, setidHabitaciones] = useState();
 
 
-  const navigate = useNavigate();
 
 
+
+ 
 
   const store = async (e) => {
     e.preventDefault();
@@ -27,17 +29,31 @@ export default function CreateHotel() {
       Nit: Nit,
       NumeroHabitaciones: NumeroHabitaciones,
       idhabitacion: idhabitaciones,
-    });
-    navigate('/');
+    })
+      .then(() => {
+        getAllHotel();
+        swal({
+          text: "Hotel Guardado con éxito",
+          icon: "success"
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+        swal({
+          text: "Error al Guardar Hotel",
+          icon: "error"
+        });
+      });
+
+
+     
   };
-
-  
-
+ 
   return (
     <div className='container-fluid container-md'>
   
-  
-      <form className='row g-3' onSubmit={store}>
+ 
+      <form className='row g-3'  onSubmit={store} >
         <div className='col-md-6'>
           <label for='validationDefault01' className='form-label'>
             Nombre Hotel
@@ -126,13 +142,15 @@ export default function CreateHotel() {
 
         
         <div className="modal-footer justify-content-between">
-              <button type="button" class='btn btn-default' data-dismiss="modal">Close</button>
-              <button type="submit" className='btn btn-primary' >Guardar</button>
+              <button type="button" className='btn btn-default' data-dismiss="modal">Close</button>
+              <button type="submit"  className='btn btn-primary' >Guardar</button>
         </div>
         
       </form>
     </div>
   );
+
 };
+
 
 

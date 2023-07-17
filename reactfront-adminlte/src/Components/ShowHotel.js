@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
 import CreateHotel from "./CreateHotel";
 import swal from 'sweetalert';
 import UpdateHotel from "./UpdateHotel";
@@ -8,32 +7,59 @@ import UpdateHotel from "./UpdateHotel";
 const endpoint = "http://localhost:8000/api";
 const ShowHotel = () => {
   const [hoteles, setHoteles] = useState([]);
+  const [selectedHotelId, setSelectedHotelId] = useState(null);
 
   useEffect(() => {
     getAllHotel();
   }, []);
 
   const getAllHotel = async () => {
-    const rpta = await axios.get(`${endpoint}/Hoteles`);
+    try {
+      const rpta = await axios.get(`${endpoint}/Hoteles`);
     setHoteles(rpta.data);
+    } catch (error) {
+      console.error(error);
+    }
+   
   };
-
-  const deleteHotel = async (id) => {
-    swal({
-      title:"Eliminar",
-      text:"Esta seguro que Desea Eliminar",
-      icon:"warning",
-      buttons:["no","si"]
-        }).then(respuesta=>{
-          if(respuesta){
-          swal({text:"El Archivo se ha Borrado con exito",
-        icon:"success"})
-        axios.delete(`${endpoint}/Hotel/${id}`);
-        getAllHotel();
-      }
-        })
   
-  };
+const ActualizarPagina = ()=>{
+  window.location.reload()
+}
+
+const deleteHotel = async (id) => {
+  swal({
+    title: "Eliminar",
+    text: "¿Está seguro que desea eliminar?",
+    icon: "warning",
+    buttons: ["No", "Sí"]
+  }).then((respuesta) => {
+    if (respuesta) {
+      axios.delete(`${endpoint}/Hotel/${id}`)
+        .then(() => {
+          getAllHotel();
+          swal({
+            text: "El archivo se ha borrado con éxito",
+            icon: "success"
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+          swal({
+            text: "Error al borrar el archivo",
+            icon: "error"
+          });
+        });
+    }
+  });
+};
+
+const EditarHotel= async(id)=>{
+  setSelectedHotelId(id);
+}
+
+// ...
+
 
 
 
@@ -106,10 +132,12 @@ const ShowHotel = () => {
                           <td text-right py-0 align-middle>
                            <div className="btn-group btn-group-sm">
                             <button
+                           
                               type="button"     
                               className="btn btn-block btn-warning"
                               data-toggle="modal"
                               data-target="#Modal-Edit"
+                              onClick={() => EditarHotel(hotel.id)}
                             >
                              <i className="fas fa-eye"></i>
                             </button>
@@ -178,7 +206,7 @@ const ShowHotel = () => {
                   </div>
                   <div class="modal-body">
                     <div className="container-fluid container-md">
-                      <CreateHotel />
+                      <CreateHotel getAllHotel={getAllHotel} ActualizarPagina={ActualizarPagina}/>
                     </div>
                   </div>
                 </div>
@@ -190,7 +218,7 @@ const ShowHotel = () => {
               <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h4 class="modal-title">Crear Hotel</h4>
+                    <h4 class="modal-title">Actualizar Hotel</h4>
                     <button
                       type="button"
                       class="close"
@@ -202,7 +230,7 @@ const ShowHotel = () => {
                   </div>
                   <div class="modal-body">
                     <div className="container-fluid container-md">
-                      <UpdateHotel />
+                    <UpdateHotel hotelId={selectedHotelId} />
                     </div>
                   </div>
                 </div>
