@@ -1,156 +1,159 @@
-import axios from 'axios';
-import React, { useState } from 'react';
-import swal from 'sweetalert';
+// En tu archivo CreateHotel.js
 
+import React, { useState } from "react";
+import axios from "axios";
+import swal from "sweetalert";
 
-const endpoint = 'http://localhost:8000/api/Hotel';
+// Asegúrate de que el endpoint sea el correcto para CREAR un hotel.
+// Normalmente es una petición POST a la URL de la colección (ej: /api/Hoteles)
+const endpoint = "http://localhost:8000/api/Hotel";
 
+// Recibimos la función onCreationSuccess desde el componente padre (ShowHotel)
+const CreateHotel = ({ onCreationSuccess }) => {
+  // 1. Estado para cada campo del formulario
+  const [nombreHotel, setNombreHotel] = useState("");
+  const [direccion, setDireccion] = useState("");
+  const [ciudad, setCiudad] = useState("");
+  const [nit, setNit] = useState("");
+  const [numeroHabitaciones, setNumeroHabitaciones] = useState("");
+  const [idhabitacion, setIdhabitacion] = useState(""); // Asumiendo que esto es un ID o tipo
 
-export default function CreateHotel({ getAllHotel,ActualizarPagina }) {
-  const [NombreHotel, setNombreHotel] = useState('');
-  const [Direccion, setDireccion] = useState('');
-  const [Ciudad, setCiudad] = useState('');
-  const [Nit, setNit] = useState();
-  const [NumeroHabitaciones, setNumeroHabitaciones] = useState();
-  const [idhabitaciones, setidHabitaciones] = useState();
+  const [loading, setLoading] = useState(false);
 
+  // 2. Función que se ejecuta al enviar el formulario
+  const handleStore = async (e) => {
+    e.preventDefault(); // ¡Muy importante! Evita que la página se recargue
+    setLoading(true);
 
+    const payload = {
+      NombreHotel: nombreHotel,
+      Direccion: direccion,
+      Ciudad: ciudad,
+      Nit: nit,
+      NumeroHabitaciones: numeroHabitaciones,
+      idhabitacion: idhabitacion,
+    };
 
+    console.log("Enviando datos para crear hotel:", payload);
+    console.log("A la URL:", endpoint);
 
+    try {
+      // 3. Petición POST con Axios para crear el recurso
+      await axios.post(endpoint, payload);
 
- 
+      // 4. Si todo sale bien...
+      swal("¡Éxito!", "El hotel fue creado correctamente.", "success");
 
-  const store = async (e) => {
-    e.preventDefault();
-    await axios.post(endpoint, {
-      NombreHotel: NombreHotel,
-      Direccion: Direccion,
-      Ciudad: Ciudad,
-      Nit: Nit,
-      NumeroHabitaciones: NumeroHabitaciones,
-      idhabitacion: idhabitaciones,
-    })
-      .then(() => {
-        getAllHotel();
-        swal({
-          text: "Hotel Guardado con éxito",
-          icon: "success"
-        });
-      })
-      .catch((error) => {
-        console.error(error);
-        swal({
-          text: "Error al Guardar Hotel",
-          icon: "error"
-        });
-      });
+      // Llamamos a la función del padre para que actualice la tabla
+      onCreationSuccess();
 
+      // Limpiamos el formulario para el siguiente registro
+      setNombreHotel("");
+      setDireccion("");
+      setCiudad("");
+      setNit("");
+      setNumeroHabitaciones("");
+      setIdhabitacion("");
 
-     
+      // Cerramos el modal de Bootstrap
+      window.$("#Modal-Create").modal("hide");
+    } catch (error) {
+      // 5. Si algo sale mal...
+      console.error("--- ERROR AL CREAR HOTEL ---");
+      if (error.response) {
+        // El error más común es de validación (422)
+        console.error("Data:", error.response.data);
+        console.error("Status:", error.response.status);
+        swal("Error de validación", error.response.data.message, "error");
+      } else {
+        console.error("Error:", error.message);
+        swal("Error", "No se pudo conectar con el servidor.", "error");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
- 
+
   return (
-    <div className='container-fluid container-md'>
-  
- 
-      <form className='row g-3'  onSubmit={store} >
-        <div className='col-md-6'>
-          <label for='validationDefault01' className='form-label'>
-            Nombre Hotel
-          </label>
+    <div className="container-fluid container-md">
+      <form className="row g-3" onSubmit={handleStore}>
+        <div className="col-md-4">
+          <label>Nombre del Hotel</label>
           <input
-            value={NombreHotel}
+            type="text"
+            className="form-control"
+            value={nombreHotel}
             onChange={(e) => setNombreHotel(e.target.value)}
-            type='text'
-            className='form-control'
-            id='validationDefault01'
             required
           />
         </div>
-
-        <div className='col-md-6'>
-          <label for='validationDefault02' className='form-label'>
-            Direccion
-          </label>
+        <div className="col-md-4">
+          <label>Dirección</label>
           <input
-            value={Direccion}
+            type="text"
+            className="form-control"
+            value={direccion}
             onChange={(e) => setDireccion(e.target.value)}
-            type='text'
-            className='form-control'
-            id='validationDefault02'
             required
           />
         </div>
-
-        <div className='col-md-6'>
-          <label for='validationDefault03' className='form-label'>
-            Ciudad
-          </label>
+        <div className="col-md-4">
+          <label>Ciudad</label>
           <input
-            value={Ciudad}
+            type="text"
+            className="form-control"
+            value={ciudad}
             onChange={(e) => setCiudad(e.target.value)}
-            type='text'
-            className='form-control'
-            id='validationDefault03'
             required
           />
         </div>
-
-        <div className='col-md-6'>
-          <label for='validationDefault04' className='form-label'>
-            Nit
-          </label>
+        <div className="col-md-4">
+          <label>NIT</label>
           <input
-            value={Nit}
+            type="text"
+            className="form-control"
+            value={nit}
             onChange={(e) => setNit(e.target.value)}
-            type='number'
-            className='form-control'
-            id='validationDefault04'
             required
           />
         </div>
-
-        <div className='col-md-6'>
-          <label for='validationDefault05' className='form-label'>
-            Numero de Habitaciones
-          </label>
+        <div className="col-md-4">
+          <label>Número de Habitaciones</label>
           <input
-            value={NumeroHabitaciones}
+            type="number"
+            className="form-control"
+            value={numeroHabitaciones}
             onChange={(e) => setNumeroHabitaciones(e.target.value)}
-            type='number'
-            className='form-control'
-            id='validationDefault05'
             required
           />
         </div>
-
-        <div className='col-md-6'>
-          <label for='validationDefault05' className='form-label'>
-           id HAbitacion
-          </label>
+        <div className="col-md-4">
+          <label>Tipo de Habitaciones (ID)</label>
           <input
-            value={idhabitaciones}
-            onChange={(e) => setidHabitaciones(e.target.value)}
-            type='number'
-            className='form-control'
-            id='validationDefault06'
+            type="text"
+            className="form-control"
+            value={idhabitacion}
+            onChange={(e) => setIdhabitacion(e.target.value)}
             required
           />
         </div>
 
-
-
-        
         <div className="modal-footer justify-content-between">
-              <button type="button" className='btn btn-default' data-dismiss="modal">Close</button>
-              <button type="submit"  className='btn btn-primary' >Guardar</button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            data-dismiss="modal"
+            disabled={loading}
+          >
+            Cancelar
+          </button>
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "Guardando..." : "Guardar Hotel"}
+          </button>
         </div>
-        
       </form>
     </div>
   );
-
 };
 
-
-
+export default CreateHotel;

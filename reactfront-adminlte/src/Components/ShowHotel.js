@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import CreateHotel from "./CreateHotel";
-import swal from 'sweetalert';
+import swal from "sweetalert";
 import UpdateHotel from "./UpdateHotel";
 
 const endpoint = "http://localhost:8000/api";
+
 const ShowHotel = () => {
   const [hoteles, setHoteles] = useState([]);
   const [selectedHotelId, setSelectedHotelId] = useState(null);
@@ -16,53 +17,50 @@ const ShowHotel = () => {
   const getAllHotel = async () => {
     try {
       const rpta = await axios.get(`${endpoint}/Hoteles`);
-    setHoteles(rpta.data);
+      setHoteles(rpta.data);
     } catch (error) {
-      console.error(error);
+      // It's good practice to provide user feedback on error
+      console.error("Error fetching hotels:", error);
+      swal({
+        text: "Error al cargar los hoteles.",
+        icon: "error",
+      });
     }
-   
   };
-  
-const ActualizarPagina = ()=>{
-  window.location.reload()
-}
 
-const deleteHotel = async (id) => {
-  swal({
-    title: "Eliminar",
-    text: "¿Está seguro que desea eliminar?",
-    icon: "warning",
-    buttons: ["No", "Sí"]
-  }).then((respuesta) => {
-    if (respuesta) {
-      axios.delete(`${endpoint}/Hotel/${id}`)
-        .then(() => {
-          getAllHotel();
-          swal({
-            text: "El archivo se ha borrado con éxito",
-            icon: "success"
+  const deleteHotel = async (id) => {
+    swal({
+      title: "Eliminar Hotel",
+      text: "¿Está seguro que desea eliminar este hotel?",
+      icon: "warning",
+      buttons: ["No", "Sí"],
+      dangerMode: true,
+    }).then((willDelete) => {
+      if (willDelete) {
+        axios
+          .delete(`${endpoint}/Hotel/${id}`)
+          .then(() => {
+            // Re-fetch data to update the list
+            getAllHotel();
+            swal({
+              text: "El hotel ha sido borrado con éxito.",
+              icon: "success",
+            });
+          })
+          .catch((error) => {
+            console.error("Error deleting hotel:", error);
+            swal({
+              text: "Error al borrar el hotel.",
+              icon: "error",
+            });
           });
-        })
-        .catch((error) => {
-          console.error(error);
-          swal({
-            text: "Error al borrar el archivo",
-            icon: "error"
-          });
-        });
-    }
-  });
-};
+      }
+    });
+  };
 
-const EditarHotel= async(id)=>{
-  setSelectedHotelId(id);
-}
-
-// ...
-
-
-
-
+  const handleEditClick = (id) => {
+    setSelectedHotelId(id);
+  };
 
   return (
     <div className="content-wrapper">
@@ -72,85 +70,76 @@ const EditarHotel= async(id)=>{
             <div className="col-sm-6">
               <h1 className="m-0">Hoteles Dancarton</h1>
             </div>
-            {/* /.col */}
             <div className="col-sm-6">
               <ol className="breadcrumb float-sm-right">
                 <li className="breadcrumb-item">
                   <a href="#">Home</a>
                 </li>
-                <li className="breadcrumb-item active">Dashboard v1</li>
               </ol>
             </div>
-            {/* /.col */}
           </div>
-          {/* /.row */}
         </div>
-        {/* /.container-fluid */}
       </div>
       <section className="content">
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              <div class="card">
+              <div className="card">
                 <div className="card-header">
-                  <h3 class="card-title">Hoteles</h3>
-                  <div class="d-grid justify-content-md-end ">
+                  <h3 className="card-title">Lista de Hoteles</h3>
+                  <div className="card-tools">
                     <button
-                      className="btn btn-block bg-gradient-primary"
+                      className="btn btn-primary"
                       type="button"
                       data-toggle="modal"
-                      data-target="#Modal-Create"
+                      data-target="#modal-create-hotel"
                     >
-                      CREAR HOTEL
+                      <i className="fas fa-plus"></i> CREAR HOTEL
                     </button>
                   </div>
                 </div>
-                <div className="card-body table-responsive">
+                <div className="card-body table-responsive p-0">
                   <table className="table table-hover text-nowrap">
                     <thead>
                       <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Nombre Hotel</th>
-                        <th scope="col">Direccion</th>
-                        <th scope="col">Ciudad</th>
-                        <th scope="col">Nit</th>
-                        <th scope="col">Cantidad Habitacionies</th>
-                        <th scope="col">tipo Habitacionies</th>
-                        <th scope="col">Acciones</th>
+                        <th>#</th>
+                        <th>Nombre Hotel</th>
+                        <th>Dirección</th>
+                        <th>Ciudad</th>
+                        <th>Nit</th>
+                        <th>N° Habitaciones</th>
+                        <th>Tipo Habitaciones</th>
+                        <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {hoteles.map((hotel) => (
                         <tr key={hotel.id}>
-                          <th scope="row">{hotel.id}</th>
+                          <td>{hotel.id}</td>
                           <td>{hotel.NombreHotel}</td>
                           <td>{hotel.Direccion}</td>
                           <td>{hotel.Ciudad}</td>
                           <td>{hotel.Nit}</td>
                           <td>{hotel.NumeroHabitaciones}</td>
                           <td>{hotel.idhabitacion}</td>
-                          <td text-right py-0 align-middle>
-                           <div className="btn-group btn-group-sm">
-                            <button
-                           
-                              type="button"     
-                              className="btn btn-block btn-warning"
-                              data-toggle="modal"
-                              data-target="#Modal-Edit"
-                              onClick={() => EditarHotel(hotel.id)}
-                            >
-                             <i className="fas fa-eye"></i>
-                            </button>
-                            
-                      
-                            <button
-                              type="button"
-                              className="btn btn-outline-danger toastsDefaultDanger"
-                              onClick={() => deleteHotel(hotel.id)}
-                             
-                            >
-                             <i className="fas fa-trash"></i>
-                            </button>
+                          <td className="text-right py-0 align-middle">
+                            <div className="btn-group btn-group-sm">
+                              <button
+                                type="button"
+                                className="btn btn-warning"
+                                data-toggle="modal"
+                                data-target="#modal-edit-hotel"
+                                onClick={() => handleEditClick(hotel.id)}
+                              >
+                                <i className="fas fa-eye"></i>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-danger"
+                                onClick={() => deleteHotel(hotel.id)}
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -158,80 +147,85 @@ const EditarHotel= async(id)=>{
                     </tbody>
                   </table>
                 </div>
-                <div class="card-footer clearfix">
-                  <ul class="pagination pagination-sm m-0 float-right">
-                    <li class="page-item">
-                      <a class="page-link" href="#">
-                        &laquo;
+                <div className="card-footer clearfix">
+                  {/* Note: This pagination is static. For a full implementation, 
+                      you would need state to manage the current page and API support for pagination. */}
+                  <ul className="pagination pagination-sm m-0 float-right">
+                    <li className="page-item">
+                      <a className="page-link" href="#">
+                        «
                       </a>
                     </li>
-                    <li class="page-item">
-                      <a class="page-link" href="#">
+                    <li className="page-item">
+                      <a className="page-link" href="#">
                         1
                       </a>
                     </li>
-                    <li class="page-item">
-                      <a class="page-link" href="#">
+                    <li className="page-item">
+                      <a className="page-link" href="#">
                         2
                       </a>
                     </li>
-                    <li class="page-item">
-                      <a class="page-link" href="#">
+                    <li className="page-item">
+                      <a className="page-link" href="#">
                         3
                       </a>
                     </li>
-                    <li class="page-item">
-                      <a class="page-link" href="#">
-                        &raquo;
+                    <li className="page-item">
+                      <a className="page-link" href="#">
+                        »
                       </a>
                     </li>
                   </ul>
                 </div>
               </div>
             </div>
-                        {/* Modal de Crear Hotel */}
-            <div class="modal fade" id="Modal-Create">
-              <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h4 class="modal-title">Crear Hotel</h4>
+
+            {/* Modal: Crear Hotel */}
+            <div className="modal fade" id="modal-create-hotel">
+              <div className="modal-dialog modal-lg">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h4 className="modal-title">Crear Nuevo Hotel</h4>
                     <button
                       type="button"
                       className="close"
                       data-dismiss="modal"
                       aria-label="Close"
                     >
-                      <span aria-hidden="true">&times;</span>
+                      <span aria-hidden="true">×</span>
                     </button>
                   </div>
-                  <div class="modal-body">
-                    <div className="container-fluid container-md">
-                      <CreateHotel getAllHotel={getAllHotel} ActualizarPagina={ActualizarPagina}/>
-                    </div>
+                  <div className="modal-body">
+                    <CreateHotel onCreationSuccess={getAllHotel} />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Modal De Editar Hotel */}
-            <div class="modal fade" id="Modal-Edit">
-              <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h4 class="modal-title">Actualizar Hotel</h4>
+            {/* Modal: Editar Hotel */}
+            <div className="modal fade" id="modal-edit-hotel">
+              <div className="modal-dialog modal-lg">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h4 className="modal-title">Actualizar Hotel</h4>
                     <button
                       type="button"
-                      class="close"
+                      className="close"
                       data-dismiss="modal"
                       aria-label="Close"
                     >
-                      <span aria-hidden="true">&times;</span>
+                      <span aria-hidden="true">×</span>
                     </button>
                   </div>
-                  <div class="modal-body">
-                    <div className="container-fluid container-md">
-                    <UpdateHotel hotelId={selectedHotelId} />
-                    </div>
+                  <div className="modal-body">
+                    {/* The UpdateHotel component only renders if a hotel has been selected */}
+                    {selectedHotelId && (
+                      <UpdateHotel
+                        hotelId={selectedHotelId}
+                        onUpdateSuccess={getAllHotel}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -242,4 +236,5 @@ const EditarHotel= async(id)=>{
     </div>
   );
 };
+
 export default ShowHotel;

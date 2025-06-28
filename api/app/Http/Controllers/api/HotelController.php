@@ -13,11 +13,12 @@ class HotelController extends Controller
 {
     
     /**
-     * Funcioon para mostrar Todos los hoteles
+     * Funcion para mostrar Todos los hoteles
      */
     public function index()
     {
-        $hotel=hoteles::all();
+   
+          $hotel = hoteles::orderBy('id', 'desc')->get();
         return $hotel;
     }
 
@@ -65,10 +66,10 @@ class HotelController extends Controller
 
     /**
      * funcion para actualizar un hotel
-     */
+     */                                                                                                                                             
     public function update(Request $request, $id)
     {
-        $hotel= hoteles::findOrFail($request->id);
+        $hotel = hoteles::findOrFail($request->id);
         $hotel->NombreHotel=$request->NombreHotel;
         $hotel->Direccion=$request->Direccion;
         $hotel->Ciudad=$request->Ciudad;

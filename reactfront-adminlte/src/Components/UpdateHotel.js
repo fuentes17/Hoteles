@@ -1,150 +1,168 @@
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import React, {useState,useEffect} from "react";
-import { useNavigate,useParams } from "react-router-dom";
+import swal from "sweetalert";
 
+const endpoint = "http://localhost:8000/api";
 
-const endpoint = 'http://localhost:8000/api/Hotel/'
+const UpdateHotel = ({ hotelId, onUpdateSuccess }) => {
+  // Estado para cada campo del formulario
+  const [nombreHotel, setNombreHotel] = useState("");
+  const [direccion, setDireccion] = useState("");
+  const [ciudad, setCiudad] = useState("");
+  const [nit, setNit] = useState("");
+  const [numeroHabitaciones, setNumeroHabitaciones] = useState("");
 
-const UpdateHotel = ()=>{
- 
-    const [NombreHotel,setNombreHotel] = useState('')
-    const [Direccion,setDireccion] = useState('')
-    const [Ciudad,setCiudad] = useState('')
-    const [Nit,setNit] = useState(0)
-    const [NumeroHabitaciones,setNumeroHabitaciones] = useState(0)
-    const [idhabitacion,setidhabitacion] = useState(0)
-    const navigate = useNavigate()
-    const {id} = useParams()
+  // ==========================================================
+  // PASO 1: AÑADIR ESTADO PARA IDHABITACION
+  // ==========================================================
+  const [idhabitacion, setIdhabitacion] = useState("");
 
-    
+  const [loading, setLoading] = useState(false);
 
-    const update = async (e) => {
-        e.preventDefault()
-        await axios.put(`${endpoint}${id}`,{
-            NombreHotel:NombreHotel,
-            Direccion:Direccion,
-            Ciudad:Ciudad,
-            Nit:Nit,
-            NumeroHabitaciones:NumeroHabitaciones,
-            idhabitacion:idhabitacion 
-        })
-        navigate('/')
-    }
+  useEffect(() => {
+    if (hotelId) {
+      const getHotelById = async () => {
+        try {
+          const response = await axios.get(`${endpoint}/Hotel/${hotelId}`);
+          const hotelData = response.data;
 
+          // Log para depurar: Muestra en la consola exactamente lo que recibes de la API
+          console.log("Datos recibidos para editar:", hotelData);
 
-    useEffect(()=>{
-        const getHotelById = async () => {
-            const rpta = await axios.get(`${endpoint}${id}`)
-            setNombreHotel(rpta.data.NombreHotel) 
-            setDireccion(rpta.data.Direccion)
-            setCiudad(rpta.data.Ciudad)
-            setNit(rpta.data.Nit)
-            setNumeroHabitaciones(rpta.data.NumeroHabitaciones)
-            setidhabitacion(rpta.data.idhabitacion)
+          // Llenamos el estado del formulario con los datos recibidos
+          setNombreHotel(hotelData.NombreHotel);
+          setDireccion(hotelData.Direccion);
+          setCiudad(hotelData.Ciudad);
+          setNit(hotelData.Nit);
+          setNumeroHabitaciones(hotelData.NumeroHabitaciones);
+
+          // ==========================================================
+          // PASO 2: GUARDAR EL IDHABITACION EN EL ESTADO
+          // Asegúrate que 'hotelData.idhabitacion' coincide con el nombre del campo en tu API.
+          // Podría ser 'id_habitacion' o algo diferente. ¡Verifícalo con el console.log!
+          // ==========================================================
+          setIdhabitacion(hotelData.idhabitacion);
+        } catch (error) {
+          console.error("Error fetching hotel data:", error);
         }
-        getHotelById()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [] )
-    
-    return (
-      <div className='container-fluid container-md'>
-  
-  
-      <form className='row g-3' onSubmit={update}>
-        <div className='col-md-6'>
-          <label for='validationDefault01' className='form-label'>
-            Nombre Hotel
-          </label>
-          <input
-            value={NombreHotel}
-            onChange={(e) => setNombreHotel(e.target.value)}
-            type='text'
-            className='form-control'
-            id='validationDefault01'
-            required
-          />
-        </div>
+      };
+      getHotelById();
+    }
+  }, [hotelId]);
 
-        <div className='col-md-6'>
-          <label for='validationDefault02' className='form-label'>
-            Direccion
-          </label>
-          <input
-            value={Direccion}
-            onChange={(e) => setDireccion(e.target.value)}
-            type='text'
-            className='form-control'
-            id='validationDefault02'
-            required
-          />
-        </div>
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-        <div className='col-md-6'>
-          <label for='validationDefault03' className='form-label'>
-            Ciudad
-          </label>
-          <input
-            value={Ciudad}
-            onChange={(e) => setCiudad(e.target.value)}
-            type='text'
-            className='form-control'
-            id='validationDefault03'
-            required
-          />
-        </div>
+    const url = `${endpoint}/Hotel/${hotelId}`;
+    const payload = {
+      NombreHotel: nombreHotel,
+      Direccion: direccion,
+      Ciudad: ciudad,
+      Nit: nit,
+      NumeroHabitaciones: numeroHabitaciones,
+      // ==========================================================
+      // PASO 3: INCLUIR EL IDHABITACION EN LOS DATOS A ENVIAR
+      // ==========================================================
+      idhabitacion: idhabitacion,
+    };
 
-        <div className='col-md-6'>
-          <label for='validationDefault04' className='form-label'>
-            Nit
-          </label>
-          <input
-            value={Nit}
-            onChange={(e) => setNit(e.target.value)}
-            type='number'
-            className='form-control'
-            id='validationDefault04'
-            required
-          />
-        </div>
+    console.log("Enviando actualización con payload:", payload);
 
-        <div className='col-md-6'>
-          <label for='validationDefault05' className='form-label'>
-            Numero de Habitaciones
-          </label>
-          <input
-            value={NumeroHabitaciones}
-            onChange={(e) => setNumeroHabitaciones(e.target.value)}
-            type='number'
-            className='form-control'
-            id='validationDefault05'
-            required
-          />
-        </div>
+    try {
+      await axios.put(url, payload);
+      swal("¡Actualizado!", "El hotel se actualizó correctamente.", "success");
+      onUpdateSuccess();
+      window.$("#modal-edit-hotel").modal("hide");
+    } catch (error) {
+      console.error("Error al actualizar:", error.response || error);
+      swal("Error", "No se pudo actualizar el hotel.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        <div className='col-md-6'>
-          <label for='validationDefault05' className='form-label'>
-           id HAbitacion
-          </label>
-          <input
-            value={idhabitacion}
-            onChange={(e) => setidhabitacion(e.target.value)}
-            type='number'
-            className='form-control'
-            id='validationDefault06'
-            required
-          />
-        </div>
+  return (
+    <form onSubmit={handleUpdate}>
+      {/* ... otros campos del formulario ... */}
+      <div className="form-group">
+        <label>Nombre del Hotel</label>
+        <input
+          type="text"
+          className="form-control"
+          value={nombreHotel}
+          onChange={(e) => setNombreHotel(e.target.value)}
+          required
+        />
+      </div>
+      <div className="form-group">
+        <label>Dirección</label>
+        <input
+          type="text"
+          className="form-control"
+          value={direccion}
+          onChange={(e) => setDireccion(e.target.value)}
+          required
+        />
+      </div>
+      <div className="form-group">
+        <label>Ciudad</label>
+        <input
+          type="text"
+          className="form-control"
+          value={ciudad}
+          onChange={(e) => setCiudad(e.target.value)}
+          required
+        />
+      </div>
+      <div className="form-group">
+        <label>NIT</label>
+        <input
+          type="text"
+          className="form-control"
+          value={nit}
+          onChange={(e) => setNit(e.target.value)}
+          required
+        />
+      </div>
+      <div className="form-group">
+        <label>Número de Habitaciones</label>
+        <input
+          type="number"
+          className="form-control"
+          value={numeroHabitaciones}
+          onChange={(e) => setNumeroHabitaciones(e.target.value)}
+          required
+        />
+      </div>
 
+      {/* Input para el id de habitación */}
+      <div className="form-group">
+        <label>Tipo de Habitaciones (ID)</label>
+        <input
+          type="text"
+          className="form-control"
+          value={idhabitacion}
+          onChange={(e) => setIdhabitacion(e.target.value)}
+          required
+        />
+      </div>
 
+      <div className="modal-footer">
+        <button
+          type="button"
+          className="btn btn-secondary"
+          data-dismiss="modal"
+          disabled={loading}
+        >
+          Cancelar
+        </button>
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? "Guardando..." : "Guardar Cambios"}
+        </button>
+      </div>
+    </form>
+  );
+};
 
-        
-        <div className="modal-footer justify-content-between">
-              <button type="button" class='btn btn-default' data-dismiss="modal">Close</button>
-              <button type="submit" className='btn btn-primary' >Guardar</button>
-        </div>
-        
-      </form>
-    </div>
-    )
-  }
-export default UpdateHotel
+export default UpdateHotel;
